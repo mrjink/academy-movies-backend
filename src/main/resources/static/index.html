@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Movies</title>
+</head>
+<body>
+<p>
+    <button onclick="getData()">Get Data</button>
+</p>
+<p>
+    <button onclick="postData()">Add Movie</button>
+    <br/>
+    <label for="movieTitle">Movie title: </label><input type="text" id="movieTitle"/>
+</p>
+<table id="movies">
+</table>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+
+<script type="application/javascript">
+    const getData = function () {
+        $.ajax({
+            url: "http://localhost:8080/api/movie/all",
+            type: "get",
+            success: function (result) {
+                console.log(result);
+                $('#movies').html("<tr><th>Title</th><th>Watched</th><th>Delete?</th></tr>");
+                $.each(result, function (index, movie) {
+                    const tr = $("<tr></tr>");
+                    const title = $("<td></td>").text(movie.title);
+                    const watched = $("<td></td>").text(movie.watched ? 'Yes' : 'No').click(function () {
+                        toggleWatched(movie.id)
+                    });
+                    const remove = $("<td></td>").text("Delete").click(function () {
+                        deleteMovie(movie.id)
+                    });
+                    tr.append(title, watched, remove);
+                    $('#movies').append(tr);
+                });
+            },
+            error: function (result) {
+                console.log(result);
+                $('#movies').html(result.responseText);
+            }
+        });
+    };
+
+    const postData = function () {
+        const movieTitle = $('#movieTitle').val();
+        console.log(movieTitle);
+        if (movieTitle === "") {
+            return;
+        }
+        $.ajax({
+            url: "http://localhost:8080/api/movie",
+            type: "post",
+            data: JSON.stringify({
+                title: movieTitle
+            }),
+            contentType: "application/json",
+            success: function (result) {
+                $('#movieTitle').val("");
+                getData();
+            },
+            error: function (result) {
+                console.log(result);
+                window.alert("Couldn't add movie! " + result.responseText);
+            }
+        });
+    };
+
+    const toggleWatched = function (id) {
+        $.ajax({
+            url: "http://localhost:8080/api/movie/watched/" + id,
+            type: "put",
+            success: function (result) {
+                getData();
+            },
+            error: function (result) {
+                console.log(result);
+                window.alert("Couldn't change! " + result.responseText);
+            }
+        });
+    };
+
+    const deleteMovie = function (id) {
+        if (window.confirm("Are you sure you want to delete this movie?")) {
+            $.ajax({
+                url: "http://localhost:8080/api/movie/delete/" + id,
+                type: "delete",
+                success: function (result) {
+                    getData();
+                },
+                error: function (result) {
+                    console.log(result);
+                    window.alert("Couldn't delete! " + result.responseText);
+                }
+            });
+        }
+    };
+</script>
+</body>
+</html>
