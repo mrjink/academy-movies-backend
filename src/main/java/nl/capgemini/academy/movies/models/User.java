@@ -1,10 +1,14 @@
 package nl.capgemini.academy.movies.models;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(name = "UNIQUE_KEY_USERNAME", columnNames = "username"))
@@ -15,6 +19,13 @@ public class User {
     private String username;
     private String password;
     private boolean enabled;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Movie> movies = new ArrayList<>();
 
     public User() {
     }
@@ -49,5 +60,13 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public List<Movie> getMovies() {
+        return movies;
+    }
+
+    public void setMovies(List<Movie> movies) {
+        this.movies = movies;
     }
 }

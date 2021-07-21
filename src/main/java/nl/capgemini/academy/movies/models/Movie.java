@@ -1,8 +1,12 @@
 package nl.capgemini.academy.movies.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Movie {
@@ -11,6 +15,10 @@ public class Movie {
     private long id;
     private String title;
     private boolean watched;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private User user;
 
     public Movie() {
     }
@@ -37,5 +45,13 @@ public class Movie {
 
     public void setWatched(boolean watched) {
         this.watched = watched;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
