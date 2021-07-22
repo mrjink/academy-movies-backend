@@ -3,6 +3,7 @@ package nl.capgemini.academy.movies.controllers;
 import nl.capgemini.academy.movies.models.Movie;
 import nl.capgemini.academy.movies.models.User;
 import nl.capgemini.academy.movies.repositories.MovieRepository;
+import nl.capgemini.academy.movies.services.UserService;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,36 +23,36 @@ import java.util.Optional;
 public class MovieController {
 
     private final MovieRepository movieRepository;
-    private final UserController userController;
+    private final UserService userService;
 
-    public MovieController(MovieRepository movieRepository, UserController userController) {
+    public MovieController(MovieRepository movieRepository, UserService userService) {
         this.movieRepository = movieRepository;
-        this.userController = userController;
+        this.userService = userService;
     }
 
     @RequestMapping(value = "/all", method = RequestMethod.GET)
     public Iterable<Movie> getAll(Principal principal) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         return movieRepository.findAllByUser(user, Sort.by("title"));
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public Movie getOne(Principal principal, @PathVariable long id) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         Optional<Movie> optional = movieRepository.findByUserAndId(user, id);
         return optional.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
     public void create(Principal principal, @RequestBody Movie movie) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         movie.setUser(user);
         movieRepository.save(movie);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public void update(Principal principal, @PathVariable long id, @RequestBody Movie movie) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         Movie currentMovie = movieRepository.findByUserAndId(user, id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         currentMovie.setTitle(movie.getTitle());
@@ -61,13 +62,13 @@ public class MovieController {
 
     @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE)
     public void delete(Principal principal, @PathVariable long id) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         movieRepository.deleteByUserAndId(user, id);
     }
 
     @RequestMapping(value = "/watched/{id}", method = RequestMethod.PUT)
     public void toggleWatched(Principal principal, @PathVariable long id) {
-        User user = userController.getUser(principal);
+        User user = userService.getUser(principal);
         Movie movie = movieRepository.findByUserAndId(user, id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         movie.setWatched(!movie.isWatched());
         movieRepository.save(movie);
